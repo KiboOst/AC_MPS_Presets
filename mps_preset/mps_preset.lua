@@ -120,3 +120,50 @@ function script.update(dt)
 
 end
 
+local presetSetupItems = {
+	["FRONT_BIAS"] = 0,
+	["BRAKE_ENGINE"] = 0,
+	["MGUK_RECOVERY"] = 0,
+	["MGUK_DELIVERY"] = 0,
+	["MGUH_MODE"] = 0,
+}
+
+function script.windowSetup()
+	ui.pushDWriteFont("Consolas")
+	ui.setCursorX(0)
+	ui.setCursorY(11)
+	ui.dwriteTextAligned(
+		"MPS PRESET",
+		17,
+		ui.Alignment.Center,
+		ui.Alignment.Center,
+		vec2(ui.windowWidth(), 11),
+		false,
+		rgbm(1, 1, 1, 0.9)
+	)
+	ui.setCursorY(60)
+
+	local spinners = ac.getSetupSpinners()
+	for i=1, #spinners do
+		local setupItem = spinners[i]
+		for presetSetupItem,_ in pairs(presetSetupItems) do
+			if setupItem.name == presetSetupItem then
+				ac.debug(setupItem.name..".value",setupItem.value)
+				ac.debug(setupItem.name..".step",setupItem.step)
+				ac.debug(setupItem.name..".min",setupItem.min)
+				ac.debug(setupItem.name..".max",setupItem.max)
+				ac.debug(setupItem.name..".items",setupItem.items)
+				ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
+
+				local margin = 50
+				ui.setCursorX(margin)
+				ui.setNextItemWidth(ui.windowWidth() - margin*2)
+				local presetSetupItemValue = math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max)
+				local value = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label.. ": %.0f")
+				presetSetupItems[setupItem.name] = value
+				ac.log(setupItem.name..": "..presetSetupItems[setupItem.name])
+			end
+		end
+	end
+end
+
