@@ -128,7 +128,15 @@ local presetSetupItems = {
 	["MGUH_MODE"] = 0,
 }
 
-function script.windowSetup()
+local presetsTest = {
+	"PRESET_1",
+	"PRESET_2",
+	"PRESET_3",
+}
+
+local selectedPreset = "PRESET_1"
+
+local function drawTitle()
 	ui.pushDWriteFont("Consolas")
 	ui.setCursorX(0)
 	ui.setCursorY(11)
@@ -142,12 +150,27 @@ function script.windowSetup()
 		rgbm(1, 1, 1, 0.9)
 	)
 	ui.setCursorY(60)
+end
 
+local function drawPresetsCombo(margins)
+	ui.setCursorX(margins)
+	ui.setNextItemWidth(ui.windowWidth() - margins*2)
+	local changed = false
+	ui.combo('##presets', selectedPreset, ui.ComboFlags.None, function ()
+		if ui.selectable(presetsTest[1]) then selectedPreset, changed = presetsTest[1], true end
+		if ui.selectable(presetsTest[2]) then selectedPreset, changed = presetsTest[2], true end
+		if ui.selectable(presetsTest[3]) then selectedPreset, changed = presetsTest[3], true end
+	  end)
+	ui.setCursorY(120)
+end
+
+local function drawSetupSliders(margins)
 	local spinners = ac.getSetupSpinners()
 	for i=1, #spinners do
 		local setupItem = spinners[i]
 		for presetSetupItem,_ in pairs(presetSetupItems) do
 			if setupItem.name == presetSetupItem then
+				-- LUA DEBUG | Delete later
 				ac.debug(setupItem.name..".value",setupItem.value)
 				ac.debug(setupItem.name..".step",setupItem.step)
 				ac.debug(setupItem.name..".min",setupItem.min)
@@ -156,18 +179,44 @@ function script.windowSetup()
 				ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
 
 
-				local margin = 50
-				ui.setCursorX(margin)
-				ui.setNextItemWidth(ui.windowWidth() - margin*2)
+				ui.setCursorX(margins)
+				ui.setNextItemWidth(ui.windowWidth() - margins*2)
 				local presetSetupItemValue = math.round(math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max))
 				local labelValue = setupItem.items and setupItem.items[presetSetupItemValue + 1] or "%.0f%%"
 				if string.find(labelValue,"%%") then labelValue = labelValue.."%" end
 
 				local value,updated = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
 				if updated then presetSetupItems[setupItem.name] = math.round(value) end
-				ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
+				-- ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
 			end
 		end
 	end
 end
 
+local function drawPreset(margins)
+	for ctrlIndex, keys in pairs(appSettings["controllers"]) do
+		ui.tabBar('tabbar', function ()
+			ui.offsetCursorY(20)
+			ui.setCursorX(margins)
+			for keyIndex, preset in pairs(keys) do
+				ui.tabItem(preset['name'], function ()
+					ui.text("Assigned key: ")
+					ui.sameLine(ui.measureText("Assigned key: ").x + margins)
+					ui.setNextItemWidth(ui.windowWidth() - ui.measureText("Assigned key: ").x - margins*2)
+					ui.inputText("##keyassignment", keyIndex, ui.InputTextFlags.None)
+					ui.offsetCursorY(20)
+
+					drawSetupSliders(margins)
+				end)
+			end
+		end)
+	end
+end
+
+function script.windowSetup()
+	local margins = 50
+
+	drawTitle()
+	drawPresetsCombo(margins)
+	drawPreset(margins)
+end
