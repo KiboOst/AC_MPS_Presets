@@ -152,16 +152,20 @@ function script.windowSetup()
 				ac.debug(setupItem.name..".step",setupItem.step)
 				ac.debug(setupItem.name..".min",setupItem.min)
 				ac.debug(setupItem.name..".max",setupItem.max)
-				ac.debug(setupItem.name..".items",setupItem.items)
+				ac.debug(setupItem.name..".items",stringify(setupItem.items))
 				ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
+
 
 				local margin = 50
 				ui.setCursorX(margin)
 				ui.setNextItemWidth(ui.windowWidth() - margin*2)
-				local presetSetupItemValue = math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max)
-				local value = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label.. ": %.0f")
-				presetSetupItems[setupItem.name] = value
-				ac.log(setupItem.name..": "..presetSetupItems[setupItem.name])
+				local presetSetupItemValue = math.round(math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max))
+				local labelValue = setupItem.items and setupItem.items[presetSetupItemValue + 1] or "%.0f%%"
+				if string.find(labelValue,"%%") then labelValue = labelValue.."%" end
+
+				local value,updated = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
+				if updated then presetSetupItems[setupItem.name] = math.round(value) end
+				ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
 			end
 		end
 	end
