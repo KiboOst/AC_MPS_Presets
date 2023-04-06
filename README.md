@@ -25,7 +25,9 @@ Your MPS Encoder must be set to **Pulse mode** so that changing position send a 
 
 ### Disclaimer
 
-This is an early version and doesn't have UI inside AC. I haven't enough knowledge and time to developp UI, maybe someone can help there. Having Presets setting per track in setup page would rocks for sure. If any mod/app developper want to help, either with UI or optimization, you are welcome!
+This is an early version and doesn't have UI inside AC. I haven't enough knowledge and time to developp UI, maybe someone can help there. Having Presets setting per track in setup page would rocks for sure.
+
+> If any mod/app developper want to help, either with UI or optimization, you are welcome!
 
 > Tested with Fanatec Formula v2.5 wheel, CSP v0.175, RSS FH 2022 v3.
 
