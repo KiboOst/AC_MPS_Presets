@@ -18,7 +18,8 @@ You can actually store different settings to each encoder position, and load the
 ### Requirement
 
 You will need Content Manager and Custom Shader Patch installed.
-Your MPS Encoder must be set to Pulse mode. In AC settings/control, you should see a button lighting up when rotating the encoder, just like when pressing a standard button.
+
+Your MPS Encoder must be set to **Pulse mode** so that changing position send a unique button id. In AC settings/control, you should see a button lighting up when rotating the encoder, just like when pressing a standard button.
 
 <img src="/assets/doc2.jpg" width="400">
 
@@ -34,7 +35,7 @@ Just copy app folder into your `steamapps\common\assettocorsa\apps\lua` folder.
 
 ### How to use
 
-Edit json file to edit your presets, so they can be loaded when rotating MPS encoder. You can also use standard button.
+Edit **presets.json** file to edit your presets, so they can be loaded when rotating MPS encoder. You can also use standard button.
 
 The json file is reloaded each time you exit pit. So you can edit it when adjusting setup.
 
@@ -46,11 +47,11 @@ button number: For each buttons / MPS position, set settings you want.
 
 <img src="/assets/doc1.jpg" width="400">
 
-> For each setting in a presset, an empty string won't whange/load this setting.
+> For each setting in a preset, an empty string won't change/load this setting.
 
 preset:
 
-*btnName* and *name* are just references for you, and will be displayed in AC when loading the preset.
+*btnName* and *name* are just references for you, and will be displayed in AC when loading the preset, just like when you change a setting with a button.
 
 
 ```json
