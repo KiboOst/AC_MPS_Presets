@@ -1,7 +1,7 @@
 # AC_MPS_Presets
 Assetto Corsa Multi Position Switches Presets
 
-Lua App for Multi Position Switches support in Assetto Corsa.
+## Lua App for Multi Position Switches support in Assetto Corsa.
 
 #### Usage
 
@@ -15,32 +15,75 @@ You can actually store different settings to each encoder position, and load the
 - MGU-K Delivery  
 - MGU-K Recovery
 
-#### Requirement
+### Requirement
 
 You will need Content Manager and Custom Shader Patch installed.
 Your MPS Encoder must be set to Pulse mode. In AC settings/control, you should see a button lighting up when rotating the encoder, just like when pressing a standard button.
 
-#### Disclaimer
+### Disclaimer
 
-This is an early version and doesn't have UI inside AC. I haven't enough knowledge and time to developp UI, maybe someone can help there. Having Presets setting per track in setup page would rocks for sure
+This is an early version and doesn't have UI inside AC. I haven't enough knowledge and time to developp UI, maybe someone can help there. Having Presets setting per track in setup page would rocks for sure. If any mod/app developper want to help, either with UI or optimization, you are welcome!
 
-Tested with Fanatec Formula v2.5 wheel, CSP v0.175, RSS FH 2022 v3.
+> Tested with Fanatec Formula v2.5 wheel, CSP v0.175, RSS FH 2022 v3.
 
-#### Installation
+### Installation
 
 Just copy app folder into your Assetto Corsa /app/lua folder.
 
-#### How to use
+### How to use
 
 Edit json file to edit your presets, so they can be loaded when rotating MPS encoder. You can also use standard button.
 
-> For each setting in a presset, an empty string won't whange/load this setting.
+The json file is reloaded each time you exit pit. So you can edit it when adjusting setup.
 
 json description:
 
-controllers
+controllers: The ID of your steering wheel. Should support several ones, like buttons box, but can't test.
 
-buttons
+button number: For each buttons / MPS position, set settings you want.
 
-presets
+> For each setting in a presset, an empty string won't whange/load this setting.
 
+preset:
+
+*btnName* and *name* are just references for you, and will be displayed in AC when loading the preset.
+
+
+```json
+{
+	"controllers": {
+		"1": {
+			"37": {
+				"btnName": "Left MPS Pos 1",
+				"name": "OutLap",
+				"brakeBias": 0.52,
+				"engineBrake": 7,
+				"mguRecovery": 2,
+				"mguDelivery": 2,
+				"mguCharging": true
+			},
+			"38": {
+				"btnName": "Left MPS Pos 2",
+				"name": "HotLap",
+				"brakeBias": "",
+				"engineBrake": 2,
+				"mguRecovery": 3,
+				"mguDelivery": 5,
+				"mguCharging": false
+			}
+		}
+	}
+}
+```
+
+Settings possible values:
+
+- brakeBias 
+
+- engineBrake
+
+- mguRecovery
+
+- mguDelivery
+
+- mguCharging
