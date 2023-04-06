@@ -94,37 +94,58 @@ Settings possible values:
 - brakeBias/
 
 0-> 46%
+
 0.5 -> 50%
+
 0.535 -> 53.5%
+
 1 -> 64%
+
 
 - engineBrake/
 
 0 -> 1/11
+
 1 -> 2/11
+
 2 -> 3/11
+
 ...
+
 10 -> 11/11
+
 
 - mguRecovery/
 
 0 -> 0%
+
 1 -> 10%
+
 2 -> 20%
+
 ...
+
 10 -> 100%
+
 
 - mguDelivery/
 
 0 -> No Deploy
+
 1 -> Build
+
 2 -> Low
+
 3 -> Balanced
+
 4 -> High
+
 5 -> Attack
+
 
 - mguCharging/
 
 true -> Battery
+
 false -> Motor
 
