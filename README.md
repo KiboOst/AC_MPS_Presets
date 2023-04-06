@@ -5,7 +5,7 @@ Assetto Corsa Multi Position Switches Presets
 
 #### Usage
 
-Many steering wheels have rotary encoders, that can't be used in AC. This lua app provide support for them.
+Many steering wheels have rotary encoders, that can't be used in AC. This lua app provide support for them regarding formula 1 ERS.
 
 You can actually store different settings to each encoder position, and load these settings in-game. Here are the settings stored:
 
