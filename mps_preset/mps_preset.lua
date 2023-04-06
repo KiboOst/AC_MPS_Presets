@@ -48,22 +48,17 @@ Right 49 -> 60
 
 --]=====]
 
-
-local json = require "./json"
-
-local appSettingsPath = './presets.json'
-local appSettings
-
---Load settings from json file
-local function loadSettings(path)
-	local relPath = ac.findFile(path)
-	local file = io.open(relPath, "rb")
-	if not file then return nil end
-	local content = file:read "*a"
-	file:close()
-
-    return json.decode(content)
-end
+local presets = {}
+local presetSetupItems = {
+	FRONT_BIAS = 0,
+	BRAKE_ENGINE = 0,
+	MGUK_RECOVERY = 0,
+	MGUK_DELIVERY = 0,
+	MGUH_MODE = 0,
+}
+local presetNames = {
+}
+local selectedPreset = ""
 
 -- Change car setup according to json presets
 local function loadPreset(btnName, name, brakeBias, engineBrake, mguRecovery, mguDelivery, mguCharging)
@@ -87,53 +82,15 @@ local function loadPreset(btnName, name, brakeBias, engineBrake, mguRecovery, mg
 end
 
 -- Check buttons pressed for each button configured in json
-local function checkKeyForPreset(settings)
-	for ctrlIndex, keys in pairs(settings["controllers"]) do
-		for keyIndex, preset in pairs(keys) do
-			if ac.isJoystickButtonPressed(ctrlIndex, keyIndex-1) then
-				loadPreset(preset['btnName'], preset['name'], preset['brakeBias'], preset['engineBrake'], preset['mguRecovery'], preset['mguDelivery'], preset['mguCharging'])
-			end
+local function checkKeyForPreset()
+	for presetMode in pairs(presets[selectedPreset]) do
+		local mode = presets[selectedPreset][presetMode]
+
+		if ac.isJoystickButtonPressed(mode.JOY, mode.BUTTON) then
+			loadPreset(mode.BUTTON_NAME, presetMode, mode.FRONT_BIAS, mode.BRAKE_ENGINE, mode.MGUK_RECOVERY, mode.MGUK_DELIVERY, mode.MGUH_MODE)
 		end
 	end
 end
-
-
-local reloadSettings = true
-local doCheck = 0
-local sim = ac.getSim()
-
-function script.update(dt)
-	if sim.isInMainMenu then
-		reloadSettings = true
-		return
-	end
-
-	if reloadSettings == true then
-		appSettings = loadSettings(appSettingsPath)
-		reloadSettings = false
-	end
-
-	doCheck = doCheck + 1
-	if doCheck > 1 then
-		checkKeyForPreset(appSettings)
-		doCheck = 0
-	end
-
-end
-
-
-local presetSetupItems = {
-	FRONT_BIAS = 0,
-	BRAKE_ENGINE = 0,
-	MGUK_RECOVERY = 0,
-	MGUK_DELIVERY = 0,
-	MGUH_MODE = 0,
-}
-
-local presetNames = {
-}
-
-local selectedPreset = ""
 
 local function drawTitle()
 	ui.pushDWriteFont("Consolas")
@@ -193,7 +150,6 @@ local function drawSetupSliders(margins)
 	end
 end
 
-local presets = {}
 local lastMode = ''
 
 local function drawPreset(margins)
@@ -235,8 +191,6 @@ local function drawPreset(margins)
 		end
 	end)
 end
-
-local loaded = false
 
 local function load()
 	local presetsIni = ac.INIConfig.load(ac.findFile('./presets.ini'),ac.INIFormat.Default)
@@ -280,13 +234,31 @@ local function load()
 	selectedPreset = presetNames[1]
 end
 
+local reloadSettings = true
+local doCheck = 0
+local sim = ac.getSim()
+
+function script.update(dt)
+	if sim.isInMainMenu then
+		reloadSettings = true
+		return
+	end
+
+	if reloadSettings == true then
+		load()
+		reloadSettings = false
+	end
+
+
+	doCheck = doCheck + 1
+	if doCheck > 1 then
+		checkKeyForPreset()
+		doCheck = 0
+	end
+end
+
 function script.windowSetup()
 	local margins = 50
-
-	if not loaded then
-		load()
-		loaded=true
-	end
 
 	drawTitle()
 	drawPresetsCombo(margins)
