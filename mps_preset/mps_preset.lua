@@ -91,7 +91,7 @@ local function checkKeyForPreset()
 	for modeName in pairs(presets[selectedPreset]) do
 		local mode = presets[selectedPreset][modeName]
 
-		if ac.isJoystickButtonPressed(mode.JOY, mode.BUTTON) then
+		if ac.isJoystickButtonPressed(mode.JOY, mode.BUTTON - 1) then
 			loadPreset(modeName, mode)
 		end
 	end
