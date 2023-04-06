@@ -61,33 +61,38 @@ local presetNames = {
 local selectedPreset = ""
 
 -- Change car setup according to json presets
-local function loadPreset(btnName, name, brakeBias, engineBrake, mguRecovery, mguDelivery, mguCharging)
-	print('load preset! ' .. btnName)
-	if brakeBias ~= '' then
-		ac.setBrakeBias(brakeBias)
+local function loadPreset(modeName, mode)
+	ac.log("[Joy:"..mode.JOY.." Button:"..mode.BUTTON.."] button press detected, loading preset "..modeName)
+	if mode.FRONT_BIAS then
+		ac.setBrakeBias(mode.FRONT_BIAS/100)
+		ac.log("FRONT_BIAS="..mode.FRONT_BIAS/100)
 	end
-	if engineBrake ~= '' then
-		ac.setEngineBrakeSetting(engineBrake)
+	if mode.BRAKE_ENGINE then
+		ac.setEngineBrakeSetting(mode.BRAKE_ENGINE)
+		ac.log("BRAKE_ENGINE="..mode.BRAKE_ENGINE)
 	end
-	if mguRecovery ~= '' then
-		ac.setMGUKRecovery(mguRecovery)
+	if mode.MGUK_RECOVERY then
+		ac.setMGUKRecovery(mode.MGUK_RECOVERY/10)
+		ac.log("MGUK_RECOVERY="..mode.MGUK_RECOVERY/10)
 	end
-	if mguDelivery ~= '' then
-		ac.setMGUKDelivery(mguDelivery)
+	if mode.MGUK_DELIVERY then
+		ac.setMGUKDelivery(mode.MGUK_DELIVERY)
+		ac.log("MGUK_DELIVERY="..ac.getMGUKDeliveryName(0,mode.MGUK_DELIVERY))
 	end
-	if mguCharging ~= '' then
-		ac.setMGUHCharging(mguCharging)
+	if mode.MGUH_MODE then
+		ac.setMGUHCharging(mode.MGUH_MODE == 1 and true or false)
+		ac.log("MGUH_MODE="..(mode.MGUH_MODE == 1 and "BATTERY" or "ENGINE"))
 	end
-	ac.setMessage('Preset: ' .. btnName, name)
+	ac.log("Preset:" .. modeName .. " loaded")
 end
 
 -- Check buttons pressed for each button configured in json
 local function checkKeyForPreset()
-	for presetMode in pairs(presets[selectedPreset]) do
-		local mode = presets[selectedPreset][presetMode]
+	for modeName in pairs(presets[selectedPreset]) do
+		local mode = presets[selectedPreset][modeName]
 
 		if ac.isJoystickButtonPressed(mode.JOY, mode.BUTTON) then
-			loadPreset(mode.BUTTON_NAME, presetMode, mode.FRONT_BIAS, mode.BRAKE_ENGINE, mode.MGUK_RECOVERY, mode.MGUK_DELIVERY, mode.MGUH_MODE)
+			loadPreset(modeName, mode)
 		end
 	end
 end
