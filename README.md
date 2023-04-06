@@ -20,6 +20,8 @@ You can actually store different settings to each encoder position, and load the
 You will need Content Manager and Custom Shader Patch installed.
 Your MPS Encoder must be set to Pulse mode. In AC settings/control, you should see a button lighting up when rotating the encoder, just like when pressing a standard button.
 
+<img src="/assets/doc2.jpg" width="400">
+
 ### Disclaimer
 
 This is an early version and doesn't have UI inside AC. I haven't enough knowledge and time to developp UI, maybe someone can help there. Having Presets setting per track in setup page would rocks for sure. If any mod/app developper want to help, either with UI or optimization, you are welcome!
@@ -28,7 +30,7 @@ This is an early version and doesn't have UI inside AC. I haven't enough knowled
 
 ### Installation
 
-Just copy app folder into your Assetto Corsa /app/lua folder.
+Just copy app folder into your `steamapps\common\assettocorsa\apps\lua` folder.
 
 ### How to use
 
@@ -41,6 +43,8 @@ json description:
 controllers: The ID of your steering wheel. Should support several ones, like buttons box, but can't test.
 
 button number: For each buttons / MPS position, set settings you want.
+
+<img src="/assets/doc1.jpg" width="400">
 
 > For each setting in a presset, an empty string won't whange/load this setting.
 
@@ -56,21 +60,30 @@ preset:
 			"37": {
 				"btnName": "Left MPS Pos 1",
 				"name": "OutLap",
-				"brakeBias": 0.52,
-				"engineBrake": 7,
-				"mguRecovery": 2,
-				"mguDelivery": 2,
+				"brakeBias": 0.525,
+				"engineBrake": 10,
+				"mguRecovery": 10,
+				"mguDelivery": 1,
 				"mguCharging": true
 			},
 			"38": {
 				"btnName": "Left MPS Pos 2",
 				"name": "HotLap",
-				"brakeBias": "",
-				"engineBrake": 2,
-				"mguRecovery": 3,
-				"mguDelivery": 5,
+				"brakeBias": 0.525,
+				"engineBrake": 5,
+				"mguRecovery": 0,
+				"mguDelivery": 0,
 				"mguCharging": false
-			}
+			},
+			"39": {
+				"btnName": "Left MPS Pos 3",
+				"name": "Race",
+				"brakeBias": 0.530,
+				"engineBrake": 5,
+				"mguRecovery": 5,
+				"mguDelivery": 2,
+				"mguCharging": false
+			},
 		}
 	}
 }
@@ -78,12 +91,40 @@ preset:
 
 Settings possible values:
 
-- brakeBias 
+- brakeBias/
 
-- engineBrake
+0-> 46%
+0.5 -> 50%
+0.535 -> 53.5%
+1 -> 64%
 
-- mguRecovery
+- engineBrake/
 
-- mguDelivery
+0 -> 1/11
+1 -> 2/11
+2 -> 3/11
+...
+10 -> 11/11
 
-- mguCharging
+- mguRecovery/
+
+0 -> 0%
+1 -> 10%
+2 -> 20%
+...
+10 -> 100%
+
+- mguDelivery/
+
+0 -> No Deploy
+1 -> Build
+2 -> Low
+3 -> Balanced
+4 -> High
+5 -> Attack
+
+- mguCharging/
+
+true -> Battery
+false -> Motor
+

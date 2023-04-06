@@ -1,0 +1,51 @@
+{
+	"controllers": {
+		"1": {
+			"37": {
+				"btnName": "Left MPS Pos 1",
+				"name": "OutLap",
+				"brakeBias": 0.525,
+				"engineBrake": 10,
+				"mguRecovery": 10,
+				"mguDelivery": 1,
+				"mguCharging": true
+			},
+			"38": {
+				"btnName": "Left MPS Pos 2",
+				"name": "HotLap",
+				"brakeBias": 0.525,
+				"engineBrake": 5,
+				"mguRecovery": 0,
+				"mguDelivery": 0,
+				"mguCharging": false
+			},
+			"39": {
+				"btnName": "Left MPS Pos 3",
+				"name": "Race",
+				"brakeBias": 0.530,
+				"engineBrake": 5,
+				"mguRecovery": 5,
+				"mguDelivery": 2,
+				"mguCharging": false
+			},
+			"40": {
+				"btnName": "Left MPS Pos 4",
+				"name": "Race cruise",
+				"brakeBias": 0.530,
+				"engineBrake": 5,
+				"mguRecovery": 8,
+				"mguDelivery": 3,
+				"mguCharging": true
+			},
+			"41": {
+				"btnName": "Left MPS Pos 5",
+				"name": "Race attack",
+				"brakeBias": 0.530,
+				"engineBrake": 5,
+				"mguRecovery": 3,
+				"mguDelivery": 2,
+				"mguCharging": false
+			}
+		}
+	}
+}
