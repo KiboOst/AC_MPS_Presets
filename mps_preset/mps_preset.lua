@@ -61,6 +61,7 @@ local function loadSettings(path)
 	if not file then return nil end
 	local content = file:read "*a"
 	file:close()
+
     return json.decode(content)
 end
 
@@ -120,6 +121,7 @@ function script.update(dt)
 
 end
 
+
 local presetSetupItems = {
 	["FRONT_BIAS"] = 0,
 	["BRAKE_ENGINE"] = 0,
@@ -128,13 +130,10 @@ local presetSetupItems = {
 	["MGUH_MODE"] = 0,
 }
 
-local presetsTest = {
-	"PRESET_1",
-	"PRESET_2",
-	"PRESET_3",
+local presetNames = {
 }
 
-local selectedPreset = "PRESET_1"
+local selectedPreset = ""
 
 local function drawTitle()
 	ui.pushDWriteFont("Consolas")
@@ -157,10 +156,11 @@ local function drawPresetsCombo(margins)
 	ui.setNextItemWidth(ui.windowWidth() - margins*2)
 	local changed = false
 	ui.combo('##presets', selectedPreset, ui.ComboFlags.None, function ()
-		if ui.selectable(presetsTest[1]) then selectedPreset, changed = presetsTest[1], true end
-		if ui.selectable(presetsTest[2]) then selectedPreset, changed = presetsTest[2], true end
-		if ui.selectable(presetsTest[3]) then selectedPreset, changed = presetsTest[3], true end
-	  end)
+		for i = 1, #presetNames do
+			if ui.selectable(presetNames[i]) then selectedPreset, changed = presetNames[i], true end
+		end
+	end)
+
 	ui.setCursorY(120)
 end
 
@@ -171,12 +171,12 @@ local function drawSetupSliders(margins)
 		for presetSetupItem,_ in pairs(presetSetupItems) do
 			if setupItem.name == presetSetupItem then
 				-- LUA DEBUG | Delete later
-				ac.debug(setupItem.name..".value",setupItem.value)
-				ac.debug(setupItem.name..".step",setupItem.step)
-				ac.debug(setupItem.name..".min",setupItem.min)
-				ac.debug(setupItem.name..".max",setupItem.max)
-				ac.debug(setupItem.name..".items",stringify(setupItem.items))
-				ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
+				-- ac.debug(setupItem.name..".value",setupItem.value)
+				-- ac.debug(setupItem.name..".step",setupItem.step)
+				-- ac.debug(setupItem.name..".min",setupItem.min)
+				-- ac.debug(setupItem.name..".max",setupItem.max)
+				-- ac.debug(setupItem.name..".items",stringify(setupItem.items))
+				-- ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
 
 
 				ui.setCursorX(margins)
@@ -193,28 +193,88 @@ local function drawSetupSliders(margins)
 	end
 end
 
-local function drawPreset(margins)
-	for ctrlIndex, keys in pairs(appSettings["controllers"]) do
-		ui.tabBar('tabbar', function ()
-			ui.offsetCursorY(20)
-			ui.setCursorX(margins)
-			for keyIndex, preset in pairs(keys) do
-				ui.tabItem(preset['name'], function ()
-					ui.text("Assigned key: ")
-					ui.sameLine(ui.measureText("Assigned key: ").x + margins)
-					ui.setNextItemWidth(ui.windowWidth() - ui.measureText("Assigned key: ").x - margins*2)
-					ui.inputText("##keyassignment", keyIndex, ui.InputTextFlags.None)
-					ui.offsetCursorY(20)
+local presets = {}
 
-					drawSetupSliders(margins)
-				end)
-			end
-		end)
+local function drawPreset(margins)
+	ui.tabBar('tabbar', function ()
+		ui.offsetCursorY(20)
+		ui.setCursorX(margins)
+
+		local orderedModes = {}
+		local index = 1
+		for mode in pairs(presets[selectedPreset]) do
+			orderedModes[index] = mode
+			index = index + 1
+		end
+		table.sort(orderedModes,function(a, b) return a:lower() < b:lower() end)
+
+		for i = 1, #orderedModes do
+			local mode = orderedModes[i]
+			local presetMode = presets[selectedPreset][mode]
+			ui.tabItem(mode, function ()
+				ui.text("Assigned key: ")
+				ui.sameLine(ui.measureText("Assigned key: ").x + margins)
+				ui.setNextItemWidth(ui.windowWidth() - ui.measureText("Assigned key: ").x - margins*2)
+				ui.inputText("##keyassignment", "JOY:"..presetMode.JOY .. " BUTTON:".. presetMode.BUTTON, ui.InputTextFlags.None)
+				ui.offsetCursorY(20)
+
+				drawSetupSliders(margins)
+			end)
+		end
+	end)
+end
+
+local loaded = false
+
+local function load()
+	local presetsIni = ac.INIConfig.load(ac.findFile('./presets.ini'),ac.INIFormat.Default)
+
+	local index = 1
+	for section in pairs(presetsIni.sections) do
+		local name = presetsIni:get(section,"NAME",'')
+		local mode = presetsIni:get(section,"MODE",'')
+		-- LUA DEBUG | Delete later
+		-- ac.debug(section .. " " .. mode .. " NAME",presetsIni:get(section,"NAME",''))
+		-- ac.debug(section .. " " .. mode .. " JOY",presetsIni:get(section,"JOY",''))
+		-- ac.debug(section .. " " .. mode .. " BUTTON",presetsIni:get(section,"BUTTON",''))
+		-- ac.debug(section .. " " .. mode .. " BUTTON_NAME",presetsIni:get(section,"BUTTON_NAME",''))
+		-- ac.debug(section .. " " .. mode .. " MODE",presetsIni:get(section,"MODE",''))
+		-- ac.debug(section .. " " .. mode .. " FRONT_BIAS",presetsIni:get(section,"FRONT_BIAS",''))
+		-- ac.debug(section .. " " .. mode .. " BRAKE_ENGINE",presetsIni:get(section,"BRAKE_ENGINE",''))
+		-- ac.debug(section .. " " .. mode .. " MGUK_RECOVERY",presetsIni:get(section,"MGUK_RECOVERY",''))
+		-- ac.debug(section .. " " .. mode .. " MGUK_DELIVERY",presetsIni:get(section,"MGUK_DELIVERY",''))
+		-- ac.debug(section .. " " .. mode .. " MGUH_MODE",presetsIni:get(section,"MGUH_MODE",''))
+
+		local presetMode = {
+			MODE=presetsIni:get(section,"MODE",''),
+			JOY=presetsIni:get(section,"JOY",''),
+			BUTTON=presetsIni:get(section,"BUTTON",''),
+			BUTTON_NAME=presetsIni:get(section,"BUTTON_NAME",''),
+			FRONT_BIAS=presetsIni:get(section,"FRONT_BIAS",-1),
+			BRAKE_ENGINE=presetsIni:get(section,"BRAKE_ENGINE",-1),
+			MGUK_RECOVERY=presetsIni:get(section,"MGUK_RECOVERY",-1),
+			MGUK_DELIVERY=presetsIni:get(section,"MGUK_DELIVERY",-1),
+			MGUH_MODE=presetsIni:get(section,"MGUH_MODE",-1),
+		}
+
+		presets[name] = presets[name] == nil and {} or presets[name]
+		presets[name][mode] = presetMode
+		if not table.contains(presetNames,name) then
+			presetNames[index] = name
+			index = index + 1
+		end
 	end
+
+	selectedPreset = presetNames[1]
 end
 
 function script.windowSetup()
 	local margins = 50
+
+	if not loaded then
+		load()
+		loaded=true
+	end
 
 	drawTitle()
 	drawPresetsCombo(margins)
