@@ -123,11 +123,11 @@ end
 
 
 local presetSetupItems = {
-	["FRONT_BIAS"] = 0,
-	["BRAKE_ENGINE"] = 0,
-	["MGUK_RECOVERY"] = 0,
-	["MGUK_DELIVERY"] = 0,
-	["MGUH_MODE"] = 0,
+	FRONT_BIAS = 0,
+	BRAKE_ENGINE = 0,
+	MGUK_RECOVERY = 0,
+	MGUK_DELIVERY = 0,
+	MGUH_MODE = 0,
 }
 
 local presetNames = {
@@ -194,6 +194,7 @@ local function drawSetupSliders(margins)
 end
 
 local presets = {}
+local lastMode = ''
 
 local function drawPreset(margins)
 	ui.tabBar('tabbar', function ()
@@ -212,6 +213,17 @@ local function drawPreset(margins)
 			local mode = orderedModes[i]
 			local presetMode = presets[selectedPreset][mode]
 			ui.tabItem(mode, function ()
+				if lastMode ~= mode then
+					presetSetupItems = {
+						FRONT_BIAS = presetMode.FRONT_BIAS,
+						BRAKE_ENGINE = presetMode.BRAKE_ENGINE,
+						MGUK_RECOVERY = presetMode.MGUK_RECOVERY,
+						MGUK_DELIVERY = presetMode.MGUK_DELIVERY,
+						MGUH_MODE = presetMode.FMGUH_MODERONT_BIAS,
+					}
+				end
+				lastMode = mode
+
 				ui.text("Assigned key: ")
 				ui.sameLine(ui.measureText("Assigned key: ").x + margins)
 				ui.setNextItemWidth(ui.windowWidth() - ui.measureText("Assigned key: ").x - margins*2)
