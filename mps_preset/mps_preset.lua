@@ -160,7 +160,6 @@ local function drawSetupSliders(mode,margins)
 end
 
 local lastMode = ''
-
 local function drawPreset(margins)
 	ui.tabBar('tabbar', function ()
 		ui.offsetCursorY(20)
@@ -169,10 +168,8 @@ local function drawPreset(margins)
 		local orderedModes = {}
 		local index = 1
 		for mode in pairs(presets[selectedPreset]) do
-			if mode ~= "section" then
-				orderedModes[index] = mode
-				index = index + 1
-			end
+			orderedModes[index] = mode
+			index = index + 1
 		end
 		table.sort(orderedModes,function(a, b) return a:lower() < b:lower() end)
 
@@ -186,7 +183,7 @@ local function drawPreset(margins)
 						BRAKE_ENGINE = presetMode.BRAKE_ENGINE,
 						MGUK_RECOVERY = presetMode.MGUK_RECOVERY,
 						MGUK_DELIVERY = presetMode.MGUK_DELIVERY,
-						MGUH_MODE = presetMode.FMGUH_MODERONT_BIAS,
+						MGUH_MODE = presetMode.MGUH_MODE,
 					}
 				end
 				lastMode = mode
@@ -204,7 +201,6 @@ local function drawPreset(margins)
 end
 
 local function load()
-
 	local index = 1
 	for section in pairs(presetsIni.sections) do
 		local name = presetsIni:get(section,"NAME",'')
