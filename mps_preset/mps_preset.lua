@@ -102,7 +102,7 @@ local function drawPresetsTitle()
 	ui.pushDWriteFont("Consolas")
 	ui.setCursorX(0)
 	ui.setCursorY(11)
-	ui.dwriteTextAligned("MPS PRESET",17,ui.Alignment.Center,ui.Alignment.Center,vec2(ui.windowWidth(), 11),false,rgbm(1, 1, 1, 0.9))
+	ui.dwriteTextAligned("MPS PRESETS",17,ui.Alignment.Center,ui.Alignment.Center,vec2(ui.windowWidth(), 11),false,rgbm(1, 1, 1, 0.9))
 	ui.setCursorY(60)
 	ui.popDWriteFont()
 end
@@ -135,18 +135,25 @@ local function drawSetupSliders(mode,margins)
 				-- ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
 
 				ui.setCursorX(margins)
-				ui.setNextItemWidth(ui.windowWidth() - margins*2)
+				local checkboxToggled = presets[selectedPreset][mode][presetSetupItem]~=-1
+				ac.debug(presetSetupItem,checkboxToggled)
+				if ui.checkbox("##checkbox_"..setupItem.name, checkboxToggled) then
+					presetsIni:setAndSave(presets[selectedPreset][mode]["section"],presetSetupItem,checkboxToggled and -1 or 1)
+					presets[selectedPreset][mode][presetSetupItem] = checkboxToggled and -1 or 1
+				end
+				ui.sameLine()
+				ui.setNextItemWidth(ui.windowWidth() - margins*2 - 30)
 				local presetSetupItemValue = math.round(math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max))
 				local labelValue = setupItem.items and setupItem.items[presetSetupItemValue + 1] or "%.0f%%"
+				if not checkboxToggled then labelValue = "Current" end
 				if string.find(labelValue,"%%") then labelValue = labelValue.."%" end
-
-				local value,updated = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
+				local value,updated = ui.slider("##slider_"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
 				if updated then presetSetupItems[setupItem.name] = math.round(value)
 					presetsIni:setAndSave(presets[selectedPreset][mode]["section"],presetSetupItem,math.round(value))
 					presets[selectedPreset][mode][presetSetupItem] = math.round(value)
 				end
 				-- ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
-				ui.offsetCursorY(10)
+				ui.offsetCursorY(5)
 			end
 		end
 	end
@@ -197,12 +204,14 @@ end
 local function drawKeybindButton(mode,presetMode,margins)
 	local presetKeyLabel = "Preset key: "
 	ui.text(presetKeyLabel)
-	ui.sameLine(ui.measureText(presetKeyLabel).x + margins)
+	ui.offsetCursorY(-20)
+	ui.offsetCursorX(ui.measureText(presetKeyLabel).x + 30)
 	local buttonFlags = listening and ui.ButtonFlags.Active or ui.ButtonFlags.None
 	if ui.modernButton("##joystickinput",vec2(ui.windowWidth() - ui.measureText(presetKeyLabel).x - margins*2,20),buttonFlags) then
 		listening = true
 	end
-	ui.sameLine((ui.windowWidth() - ui.measureText(presetKeyLabel).x)/2)
+	ui.offsetCursorY(-22)
+	ui.offsetCursorX(ui.measureText(presetKeyLabel).x + 120)
 	ui.textAligned("JOY:"..presetMode.JOY .. " BUTTON:".. presetMode.BUTTON,vec2(0,0))
 
 	if listening then
@@ -212,6 +221,18 @@ local function drawKeybindButton(mode,presetMode,margins)
 		end
 	end
 	ui.offsetCursorY(20)
+end
+
+local function deleteMode()
+
+end
+
+local function deleteModeButton(mode,margins)
+	ui.setCursorY(ui.windowHeight() - 60)
+	ui.setCursorX(ui.windowWidth() - 138)
+	if ui.button("Delete Mode",vec2(88,20),ui.ButtonFlags.None) then
+		deleteMode()
+	end
 end
 
 local lastMode = ''
@@ -231,50 +252,12 @@ local function drawModesTabs(margins)
 
 			drawKeybindButton(mode,presetMode,margins)
 			drawSetupSliders(mode,margins)
-			ac.log(lastMode)
+			deleteModeButton(margins)
 		end)
 	end
 end
 
-local function createNewMode(name)
-	for mode in pairs(presets[selectedPreset]) do
-		local newSection = string.split(presets[selectedPreset][mode]["section"],"_")
-		local newSectionString = newSection[#newSection]
-		presetsIni:setAndSave(newSectionString,"NAME",selectedPreset)
-		presetsIni:setAndSave(newSectionString,"JOY",0)
-		presetsIni:setAndSave(newSectionString,"BUTTON",1)
-		presetsIni:setAndSave(newSectionString,"MODE",name)
-		presetsIni:setAndSave(newSectionString,"FRONT_BIAS",56)
-		presetsIni:setAndSave(newSectionString,"BRAKE_ENGINE",3)
-		presetsIni:setAndSave(newSectionString,"MGUK_RECOVERY",50)
-		presetsIni:setAndSave(newSectionString,"MGUK_DELIVERY",3)
-		presetsIni:setAndSave(newSectionString,"MGUH_MODE",1)
-		return
-	end
-end
-
-local function drawNewModeTab(margins)
-	ui.tabItem("+",function ()
-		local newModeNameLabel = "New mode name: "
-		ui.text(newModeNameLabel)
-		ui.sameLine(ui.measureText(newModeNameLabel).x + margins)
-		ui.setNextItemWidth(ui.windowWidth() - ui.measureText(newModeNameLabel).x - margins*2)
-		local newModeNameText, updated, entered = ui.inputText("##newmodename", "",ui.InputTextFlags.AutoSelectAll)
-		if entered then
-			ac.log(lastMode)
-			createNewMode(newModeNameText)
-		end
-	end)
-end
-
-local function drawPresetsTabBar(margins)
-	ui.tabBar('tabbar', function ()
-		drawModesTabs(margins)
-		drawNewModeTab(margins)
-	end)
-end
-
-local function load()
+local function loadPresets()
 	local index = 1
 	for section in pairs(presetsIni.sections) do
 		local name = presetsIni:get(section,"NAME",'')
@@ -315,18 +298,67 @@ local function load()
 	selectedPreset = presetNames[1]
 end
 
+local function createNewMode(name)
+	for mode in pairs(presets[selectedPreset]) do
+		local newSection = string.split(presets[selectedPreset][mode]["section"],"_")
+		local newSectionString = newSection[#newSection]
+		presetsIni:setAndSave(newSectionString,"NAME",selectedPreset)
+		presetsIni:setAndSave(newSectionString,"JOY",0)
+		presetsIni:setAndSave(newSectionString,"BUTTON",1)
+		presetsIni:setAndSave(newSectionString,"MODE",name)
+		presetsIni:setAndSave(newSectionString,"FRONT_BIAS",56)
+		presetsIni:setAndSave(newSectionString,"BRAKE_ENGINE",3)
+		presetsIni:setAndSave(newSectionString,"MGUK_RECOVERY",50)
+		presetsIni:setAndSave(newSectionString,"MGUK_DELIVERY",3)
+		presetsIni:setAndSave(newSectionString,"MGUH_MODE",1)
+		loadPresets()
+		return
+	end
+end
+
+local function drawNewModeTab(margins)
+	ui.tabItem("+",function ()
+		local newModeNameLabel = "New mode name: "
+		ui.text(newModeNameLabel)
+		ui.sameLine(ui.measureText(newModeNameLabel).x + margins)
+		ui.setNextItemWidth(ui.windowWidth() - ui.measureText(newModeNameLabel).x - margins*2)
+		local newModeNameText, updated, entered = ui.inputText("##newmodename", "",ui.InputTextFlags.AutoSelectAll)
+		if entered then
+			ac.log(lastMode)
+			createNewMode(newModeNameText)
+		end
+	end)
+end
+
+local function drawPresetsTabBar(margins)
+	ui.tabBar('tabbar', function ()
+		drawModesTabs(margins)
+		-- drawNewModeTab(margins)
+	end)
+end
+
+local function drawFootnote()
+	ui.setCursorY(ui.windowHeight()-30)
+	ui.text("This is a footnote")
+end
+
+
 local reloadSettings = true
 local doCheck = 0
 local sim = ac.getSim()
 
 function script.update(dt)
+	if not ac.isWindowOpen("main") then
+		return
+	end
+
 	if sim.isInMainMenu then
 		reloadSettings = true
 		return
 	end
 
 	if reloadSettings == true then
-		load()
+		loadPresets()
 		reloadSettings = false
 	end
 
@@ -340,7 +372,12 @@ end
 function script.windowSetup()
 	local margins = 50
 
-	drawPresetsTitle()
+	if not ac.isWindowOpen("main") then
+		return
+	end
+
+	-- drawPresetsTitle()
 	drawPresetsCombo(margins)
 	drawPresetsTabBar(margins)
+	drawFootnote()
 end
