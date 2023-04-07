@@ -151,6 +151,7 @@ local function drawSetupSliders(mode,margins)
 				local value,updated = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
 				if updated then presetSetupItems[setupItem.name] = math.round(value)
 					presetsIni:setAndSave(presets[selectedPreset][mode]["section"],presetSetupItem,math.round(value))
+					presets[selectedPreset][mode][presetSetupItem] = math.round(value)
 				end
 				-- ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
 			end
