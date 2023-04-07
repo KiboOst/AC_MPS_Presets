@@ -48,6 +48,7 @@ Right 49 -> 60
 
 --]=====]
 
+local presetsIni = ac.INIConfig.load(ac.findFile('./presets.ini'),ac.INIFormat.Default)
 local presets = {}
 local presetSetupItems = {
 	FRONT_BIAS = 0,
@@ -111,6 +112,7 @@ local function drawTitle()
 		rgbm(1, 1, 1, 0.9)
 	)
 	ui.setCursorY(60)
+	ui.popDWriteFont()
 end
 
 local function drawPresetsCombo(margins)
@@ -126,7 +128,7 @@ local function drawPresetsCombo(margins)
 	ui.setCursorY(120)
 end
 
-local function drawSetupSliders(margins)
+local function drawSetupSliders(mode,margins)
 	local spinners = ac.getSetupSpinners()
 	for i=1, #spinners do
 		local setupItem = spinners[i]
@@ -140,7 +142,6 @@ local function drawSetupSliders(margins)
 				-- ac.debug(setupItem.name..".items",stringify(setupItem.items))
 				-- ac.debug(setupItem.name..".defaultValue",setupItem.defaultValue)
 
-
 				ui.setCursorX(margins)
 				ui.setNextItemWidth(ui.windowWidth() - margins*2)
 				local presetSetupItemValue = math.round(math.clamp(presetSetupItems[setupItem.name], setupItem.min,setupItem.max))
@@ -148,7 +149,9 @@ local function drawSetupSliders(margins)
 				if string.find(labelValue,"%%") then labelValue = labelValue.."%" end
 
 				local value,updated = ui.slider("##"..setupItem.name,presetSetupItemValue,setupItem.min,setupItem.max,setupItem.label .. ": " .. labelValue)
-				if updated then presetSetupItems[setupItem.name] = math.round(value) end
+				if updated then presetSetupItems[setupItem.name] = math.round(value)
+					presetsIni:setAndSave(presets[selectedPreset][mode]["section"],presetSetupItem,math.round(value))
+				end
 				-- ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
 			end
 		end
@@ -165,8 +168,10 @@ local function drawPreset(margins)
 		local orderedModes = {}
 		local index = 1
 		for mode in pairs(presets[selectedPreset]) do
-			orderedModes[index] = mode
-			index = index + 1
+			if mode ~= "section" then
+				orderedModes[index] = mode
+				index = index + 1
+			end
 		end
 		table.sort(orderedModes,function(a, b) return a:lower() < b:lower() end)
 
@@ -191,14 +196,13 @@ local function drawPreset(margins)
 				ui.inputText("##keyassignment", "JOY:"..presetMode.JOY .. " BUTTON:".. presetMode.BUTTON, ui.InputTextFlags.None)
 				ui.offsetCursorY(20)
 
-				drawSetupSliders(margins)
+				drawSetupSliders(mode,margins)
 			end)
 		end
 	end)
 end
 
 local function load()
-	local presetsIni = ac.INIConfig.load(ac.findFile('./presets.ini'),ac.INIFormat.Default)
 
 	local index = 1
 	for section in pairs(presetsIni.sections) do
@@ -230,6 +234,7 @@ local function load()
 
 		presets[name] = presets[name] == nil and {} or presets[name]
 		presets[name][mode] = presetMode
+		presets[name][mode]["section"] = section
 		if not table.contains(presetNames,name) then
 			presetNames[index] = name
 			index = index + 1
@@ -253,7 +258,6 @@ function script.update(dt)
 		load()
 		reloadSettings = false
 	end
-
 
 	doCheck = doCheck + 1
 	if doCheck > 1 then
