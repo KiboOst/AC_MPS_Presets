@@ -88,7 +88,7 @@ local function loadPreset(modeName, mode)
 end
 
 -- Check buttons pressed for each button configured in json
-local function checkKeyForPreset()
+local function presetKeyListener()
 	for modeName in pairs(presets[selectedPreset]) do
 		local mode = presets[selectedPreset][modeName]
 
@@ -98,19 +98,11 @@ local function checkKeyForPreset()
 	end
 end
 
-local function drawTitle()
+local function drawPresetsTitle()
 	ui.pushDWriteFont("Consolas")
 	ui.setCursorX(0)
 	ui.setCursorY(11)
-	ui.dwriteTextAligned(
-		"MPS PRESET",
-		17,
-		ui.Alignment.Center,
-		ui.Alignment.Center,
-		vec2(ui.windowWidth(), 11),
-		false,
-		rgbm(1, 1, 1, 0.9)
-	)
+	ui.dwriteTextAligned("MPS PRESET",17,ui.Alignment.Center,ui.Alignment.Center,vec2(ui.windowWidth(), 11),false,rgbm(1, 1, 1, 0.9))
 	ui.setCursorY(60)
 	ui.popDWriteFont()
 end
@@ -154,49 +146,131 @@ local function drawSetupSliders(mode,margins)
 					presets[selectedPreset][mode][presetSetupItem] = math.round(value)
 				end
 				-- ac.log(setupItem.name.." "..(setupItem.items and "true" or "false")..": "..presetSetupItems[setupItem.name])
+				ui.offsetCursorY(10)
 			end
 		end
 	end
 end
 
+local function refreshPresetSetupItems(presetMode)
+	presetSetupItems = {
+		FRONT_BIAS = presetMode.FRONT_BIAS,
+		BRAKE_ENGINE = presetMode.BRAKE_ENGINE,
+		MGUK_RECOVERY = presetMode.MGUK_RECOVERY,
+		MGUK_DELIVERY = presetMode.MGUK_DELIVERY,
+		MGUH_MODE = presetMode.MGUH_MODE,
+	}
+end
+
+local function reorderModes()
+	local unorderedModes = {}
+
+	local index = 1
+	for mode in pairs(presets[selectedPreset]) do
+		unorderedModes[index] = mode
+		index = index + 1
+	end
+	table.sort(unorderedModes,function(a, b) return a:lower() < b:lower() end)
+
+	return unorderedModes
+end
+
+local function joystickInputListener()
+	for joystick=0, ac.getJoystickCount() do
+		for button=0, ac.getJoystickButtonsCount(joystick) do
+			if ac.isJoystickButtonPressed(joystick,button) then
+				return joystick, button+1
+			end
+		end
+	end
+end
+
+local listening = false
+local function saveNewKeyBind(mode,joystick,button)
+	presets[selectedPreset][mode]["JOY"] = joystick
+	presets[selectedPreset][mode]["BUTTON"] = button
+	presetsIni:setAndSave(presets[selectedPreset][mode]["section"],"JOY",joystick)
+	presetsIni:setAndSave(presets[selectedPreset][mode]["section"],"BUTTON",button)
+	listening = false
+end
+
+local function drawKeybindButton(mode,presetMode,margins)
+	local presetKeyLabel = "Preset key: "
+	ui.text(presetKeyLabel)
+	ui.sameLine(ui.measureText(presetKeyLabel).x + margins)
+	local buttonFlags = listening and ui.ButtonFlags.Active or ui.ButtonFlags.None
+	if ui.modernButton("##joystickinput",vec2(ui.windowWidth() - ui.measureText(presetKeyLabel).x - margins*2,20),buttonFlags) then
+		listening = true
+	end
+	ui.sameLine((ui.windowWidth() - ui.measureText(presetKeyLabel).x)/2)
+	ui.textAligned("JOY:"..presetMode.JOY .. " BUTTON:".. presetMode.BUTTON,vec2(0,0))
+
+	if listening then
+		local joystick, button = joystickInputListener()
+		if joystick and button then
+			saveNewKeyBind(mode,joystick,button)
+		end
+	end
+	ui.offsetCursorY(20)
+end
+
 local lastMode = ''
-local function drawPreset(margins)
+local function drawModesTabs(margins)
+	ui.offsetCursorY(20)
+	ui.setCursorX(margins)
+	local orderedModes = reorderModes()
+
+	for i = 1, #orderedModes do
+		local mode = orderedModes[i]
+		local presetMode = presets[selectedPreset][mode]
+		ui.tabItem(mode, function ()
+			if lastMode ~= mode then
+				refreshPresetSetupItems(presetMode)
+			end
+			lastMode = mode
+
+			drawKeybindButton(mode,presetMode,margins)
+			drawSetupSliders(mode,margins)
+			ac.log(lastMode)
+		end)
+	end
+end
+
+local function createNewMode(name)
+	for mode in pairs(presets[selectedPreset]) do
+		local newSection = string.split(presets[selectedPreset][mode]["section"],"_")
+		local newSectionString = newSection[#newSection]
+		presetsIni:setAndSave(newSectionString,"NAME",selectedPreset)
+		presetsIni:setAndSave(newSectionString,"JOY",0)
+		presetsIni:setAndSave(newSectionString,"BUTTON",1)
+		presetsIni:setAndSave(newSectionString,"MODE",name)
+		presetsIni:setAndSave(newSectionString,"FRONT_BIAS",56)
+		presetsIni:setAndSave(newSectionString,"BRAKE_ENGINE",3)
+		presetsIni:setAndSave(newSectionString,"MGUK_RECOVERY",50)
+		presetsIni:setAndSave(newSectionString,"MGUK_DELIVERY",3)
+		presetsIni:setAndSave(newSectionString,"MGUH_MODE",1)
+		return
+	end
+end
+
+local function drawNewModeTab(margins)
+	ui.tabItem("+",function ()
+		local newModeNameLabel = "New mode name: "
+		ui.text(newModeNameLabel)
+		ui.sameLine(ui.measureText(newModeNameLabel).x + margins)
+		ui.setNextItemWidth(ui.windowWidth() - ui.measureText(newModeNameLabel).x - margins*2)
+		local newModeNameText, updated, entered = ui.inputText("##newmodename", "",ui.InputTextFlags.AutoSelectAll)
+		if entered then
+			ac.log(lastMode)
+			createNewMode(newModeNameText)
+		end
+	end)
+end
+
+local function drawPresetsTabBar(margins)
 	ui.tabBar('tabbar', function ()
-		ui.offsetCursorY(20)
-		ui.setCursorX(margins)
-
-		local orderedModes = {}
-		local index = 1
-		for mode in pairs(presets[selectedPreset]) do
-			orderedModes[index] = mode
-			index = index + 1
-		end
-		table.sort(orderedModes,function(a, b) return a:lower() < b:lower() end)
-
-		for i = 1, #orderedModes do
-			local mode = orderedModes[i]
-			local presetMode = presets[selectedPreset][mode]
-			ui.tabItem(mode, function ()
-				if lastMode ~= mode then
-					presetSetupItems = {
-						FRONT_BIAS = presetMode.FRONT_BIAS,
-						BRAKE_ENGINE = presetMode.BRAKE_ENGINE,
-						MGUK_RECOVERY = presetMode.MGUK_RECOVERY,
-						MGUK_DELIVERY = presetMode.MGUK_DELIVERY,
-						MGUH_MODE = presetMode.MGUH_MODE,
-					}
-				end
-				lastMode = mode
-
-				ui.text("Assigned key: ")
-				ui.sameLine(ui.measureText("Assigned key: ").x + margins)
-				ui.setNextItemWidth(ui.windowWidth() - ui.measureText("Assigned key: ").x - margins*2)
-				ui.inputText("##keyassignment", "JOY:"..presetMode.JOY .. " BUTTON:".. presetMode.BUTTON, ui.InputTextFlags.None)
-				ui.offsetCursorY(20)
-
-				drawSetupSliders(mode,margins)
-			end)
-		end
+		drawModesTabs(margins)
+		drawNewModeTab(margins)
 	end)
 end
 
@@ -258,7 +332,7 @@ function script.update(dt)
 
 	doCheck = doCheck + 1
 	if doCheck > 1 then
-		checkKeyForPreset()
+		presetKeyListener()
 		doCheck = 0
 	end
 end
@@ -266,7 +340,7 @@ end
 function script.windowSetup()
 	local margins = 50
 
-	drawTitle()
+	drawPresetsTitle()
 	drawPresetsCombo(margins)
-	drawPreset(margins)
+	drawPresetsTabBar(margins)
 end
