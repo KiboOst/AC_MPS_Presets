@@ -22,7 +22,7 @@ local presetNames = {
 }
 local selectedPreset = ""
 
--- Change car setup according to json presets
+-- Change car setup according to preset
 local function loadPreset(modeName, mode)
 	ac.log("[Joy:"..mode.JOY.." Button:"..mode.BUTTON.."] button press detected, loading preset "..modeName)
 	if mode.FRONT_BIAS then
@@ -48,7 +48,7 @@ local function loadPreset(modeName, mode)
 	ac.log("Preset:" .. modeName .. " loaded")
 end
 
--- Check buttons pressed for each button configured in json
+-- Check buttons pressed for each button configured in preset
 local function presetKeyListener()
 	for modeName in pairs(presets[selectedPreset]) do
 		local mode = presets[selectedPreset][modeName]
@@ -305,7 +305,7 @@ end
 
 
 local reloadSettings = true
-local doCheck = 0
+local skipTicks = 0
 local sim = ac.getSim()
 
 function script.update(dt)
@@ -313,26 +313,28 @@ function script.update(dt)
 		return
 	end
 
+	-- App toggle
 	if sim.isInMainMenu then
 		reloadSettings = true
 		return
 	end
 
-	if reloadSettings == true then
+	if reloadSettings then
 		loadPresets()
 		reloadSettings = false
 	end
 
-	doCheck = doCheck + 1
-	if doCheck > 1 then
+	if skipTicks >= 2 then
 		presetKeyListener()
-		doCheck = 0
+		skipTicks = 0
 	end
+	skipTicks = skipTicks + 1
 end
 
 function script.windowSetup()
 	local margins = 50
 
+	-- App toggle
 	if not ac.isWindowOpen("main") then
 		return
 	end
