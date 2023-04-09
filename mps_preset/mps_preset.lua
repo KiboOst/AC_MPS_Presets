@@ -2,45 +2,6 @@
 
 
 --[=====[
-https://github.com/ac-custom-shaders-patch/acc-lua-sdk/blob/main/.definitions/ac_apps.txt
-ac.setBrakeBias(balance: number)
-ac.setEngineBrakeSetting(settingIndex: integer)
-ac.setMGUHCharging(charging: boolean)
-ac.setMGUKDelivery(level: integer)
-ac.setMGUKRecovery(level: integer)
-
-
-ac.setBrakeBias(0)
-0-> 46%
-0.5 -> 50%
-0.535 -> 53.5%
-1 -> 64%
-
-ac.setEngineBrakeSetting(2)
-0 -> 1/11
-1 -> 2/11
-2 -> 3/11
-...
-10 -> 11/11
-
-ac.setMGUHCharging(false)
-true -> Battery
-false -> Motor
-
-ac.setMGUKRecovery(1)
-0 -> 0%
-1 -> 10%
-2 -> 20%
-...
-10 -> 100%
-
-ac.setMGUKDelivery(3)
-0 -> No Deploy
-1 -> Build
-2 -> Low
-3 -> Balanced
-4 -> High
-5 -> Attack
 
 Fanatec Formula 2.2 Pulse mode:
 Left: 37 -> 48
